@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity Hub</title>
+    <!--
+        PRODUCTIVITY HUB - Single-File Web App
+        
+        SETUP INSTRUCTIONS:
+        1. Save this file as "app.html" (or "index.html" for GitHub Pages)
+        2. Open in any modern browser (Chrome, Firefox, Safari, Edge)
+        3. Works offline once loaded - all data stored locally
+        
+        GITHUB PAGES DEPLOYMENT:
+        1. Create a new GitHub repository
+        2. Rename this file to "index.html"
+        3. Push to repository
+        4. Go to Settings > Pages > Source: main branch (root)
+        5. Access via: https://yourusername.github.io/reponame/
+        
+        All data persists in localStorage under key: prod_hub_all_v1
+    -->
+    <style>
+        /* ===========================
+           GLOBAL STYLES & RESET
+        =========================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Dark theme (default) */
+            --bg-primary: #0f0f1e;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #27272a;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body.light-mode {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ===========================
+           HEADER
+        =========================== */
+        .header {
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            color: var(--accent);
+        }
+
+        .header-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem 1rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ===========================
+           LAYOUT
+        =========================== */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===========================
+           CARDS
+        =========================== */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===========================
+           BUTTONS & INPUTS
+        =========================== */
+        button {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-primary);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* ===========================
+           TIMER SECTION
+        =========================== */
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-variant-numeric: tabular-nums;
+            color: var(--accent);
+        }
+
+        .timer-inputs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .timer-input-group {
+            flex: 1;
+        }
+
+        .timer-input-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .timer-controls button {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .alarm-options {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .alarm-options label {
+            font-size: 0.875rem;
+        }
+
+        .sessions-today {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .sessions-today strong {
+            color: var(--accent);
+            font-size: 1.25rem;
+        }
+
+        /* ===========================
+           HABITS SECTION
+        =========================== */
+        .habits-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .habits-controls input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .habit-grid {
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .habit-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .habit-table th,
+        .habit-table td {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .habit-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            font-size: 0.75rem;
+            position: sticky;
+            top: 0;
+        }
+
+        .habit-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .habit-check-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            min-width: 35px;
+        }
+
+        .habit-check-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .habit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===========================
+           SLEEP SECTION
+        =========================== */
+        .sleep-quick-log {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .sleep-quick-log select {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .sleep-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .sleep-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            gap: 1rem;
+        }
+
+        .sleep-item:last-child {
+            border-bottom: none;
+        }
+
+        .sleep-date {
+            font-weight: 500;
+            min-width: 90px;
+        }
+
+        .sleep-hours {
+            flex: 1;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* ===========================
+           TODO SECTION
+        =========================== */
+        .todo-add {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .todo-add input {
+            flex: 1;
+        }
+
+        .todo-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-item.done .todo-text {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .todo-text {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .todo-delete {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* ===========================
+           SYLLABUS SECTION
+        =========================== */
+        .syllabus-add {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .syllabus-add input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .syllabus-progress {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-percent {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .syllabus-subjects {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .subject-section {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .subject-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--accent);
+        }
+
+        .chapter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chapter-item:last-child {
+            border-bottom: none;
+        }
+
+        .chapter-name {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        .chapter-status {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .chapter-delete {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* ===========================
+           ANALYTICS SECTION
+        =========================== */
+        .analytics-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 180px;
+            display: block;
+        }
+
+        /* ===========================
+           BACKUP SECTION
+        =========================== */
+        .backup-actions {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .backup-file-input {
+            display: none;
+        }
+
+        /* ===========================
+           UTILITIES
+        =========================== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 {
+            margin-top: 1rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 1rem;
+        }
+
+        .text-small {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===========================
+           RESPONSIVE
+        =========================== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 0 0.75rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .timer-display {
+                font-size: 2.5rem;
+            }
+
+            button {
+                padding: 0.5rem 1rem;
+            }
+        }
+
+        /* ===========================
+           ALARM MODAL
+        =========================== */
+        .alarm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alarm-modal.active {
+            display: flex;
+        }
+
+        .alarm-modal-content {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .alarm-modal h2 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .alarm-modal button {
+            width: 100%;
+            padding: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>📚 Productivity Hub</h1>
+                <p class="header-subtitle">Your complete study management system</p>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <div class="grid">
+            <!-- LEFT COLUMN -->
+            <div class="left-col">
+                <!-- TIMER -->
+                <div class="card">
+                    <h2 class="card-title">⏱ Study Timer</h2>
+                    <div class="timer-inputs">
+                        <div class="timer-input-group">
+                            <label for="timer-minutes">Minutes</label>
+                            <input type="number" id="timer-minutes" min="0" max="999" value="25">
+                        </div>
+                        <div class="timer-input-group">
+                            <label for="timer-seconds">Seconds</label>
+                            <input type="number" id="timer-seconds" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                    <div class="timer-display" id="timer-display">25:00</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="timer-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn-success" onclick="startTimer()">▶ Start</button>
+                        <button class="btn-secondary" onclick="pauseTimer()">⏸ Pause</button>
+                        <button class="btn-danger" onclick="stopTimer()">⏹ Stop</button>
+                    </div>
+                    <div class="alarm-options">
+                        <label>Alarm:</label>
+                        <label><input type="radio" name="alarm" value="beep" checked> Beep (1s)</label>
+                        <label><input type="radio" name="alarm" value="tone"> Tone (continuous)</label>
+                    </div>
+                    <div class="sessions-today">
+                        Sessions Today: <strong id="sessions-count">0</strong>
+                    </div>
+                </div>
+
+                <!-- TODO -->
+                <div class="card">
+                    <h2 class="card-title">✅ To-Do List</h2>
+                    <div class="todo-add">
+                        <input type="text" id="todo-input" placeholder="Add a task..." onkeypress="if(event.key==='Enter') addTodo()">
+                        <button class="btn-primary" onclick="addTodo()">Add</button>
+                    </div>
+                    <div class="todo-list" id="todo-list"></div>
+                    <button class="btn-secondary mt-1" onclick="clearCompletedTodos()" style="width: 100%">Clear Completed</button>
+                </div>
+
+                <!-- HABITS -->
+                <div class="card">
+                    <h2 class="card-title">🎯 Habits Tracker</h2>
+                    <div class="habits-controls">
+                        <input type="text" id="habit-input" placeholder="New habit name..." onkeypress="if(event.key==='Enter') addHabit()">
+                        <button class="btn-primary" onclick="addHabit()">Add Habit</button>
+                    </div>
+                    <div class="habit-grid">
+                        <table class="habit-table" id="habit-table">
+                            <thead id="habit-header"></thead>
+                            <tbody id="habit-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="habit-actions">
+                        <button class="btn-success" onclick="markAllToday()">Mark All Today</button>
+                        <button class="btn-secondary" onclick="exportHabits()">Export Month</button>
+                    </div>
+                </div>
+
+                <!-- SLEEP -->
+                <div class="card">
+                    <h2 class="card-title">😴 Sleep Tracker</h2>
+                    <div class="sleep-quick-log">
+                        <select id="sleep-hours">
+                            <option value="5">5 hours</option>
+                            <option value="6">6 hours</option>
+                            <option value="7" selected>7 hours</option>
+                            <option value="8">8 hours</option>
+                            <option value="9">9 hours</option>
+                        </select>
+                        <button class="btn-primary" onclick="logSleepToday()">Log for Today</button>
+                    </div>
+                    <div class="sleep-list" id="sleep-list"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="right-col">
+                <!-- ANALYTICS -->
+                <div class="card">
+                    <h2 class="card-title">📊 Analytics (Last 7 Days)</h2>
+                    <div class="analytics-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Study Time (minutes)</div>
+                            <canvas id="chart-study"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Habits Completion (%)</div>
+                            <canvas id="chart-habits"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Sleep (hours)</div>
+                            <canvas id="chart-sleep"></canvas>
+                        </div>
+                    </div>
+                    <button class="btn-primary mt-1" onclick="generateDailyReport()" style="width: 100%">📋 Generate Daily Report</button>
+                </div>
+
+                <!-- SYLLABUS -->
+                <div class="card">
+                    <h2 class="card-title">📖 Syllabus Tracker</h2>
+                    <div class="syllabus-add">
+                        <input type="text" id="syllabus-input" placeholder="Subject | Chapter Name" onkeypress="if(event.key==='Enter') addChapter()">
+                        <button class="btn-primary" onclick="addChapter()">Add Chapter</button>
+                    </div>
+                    <div class="syllabus-progress" id="syllabus-progress"></div>
+                    <div class="syllabus-subjects" id="syllabus-subjects"></div>
+                </div>
+
+                <!-- BACKUP -->
+                <div class="card">
+                    <h2 class="card-title">💾 Backup & Restore</h2>
+                    <div class="backup-actions">
+                        <button class="btn-primary" onclick="exportData()">📥 Export Data (JSON)</button>
+                        <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📤 Import Data</button>
+                        <input type="file" id="import-file" class="backup-file-input" accept=".json" onchange="importData(event)">
+                        <button class="btn-danger" onclick="resetAllData()">🗑 Reset All Data</button>
+                    </div>
+                    <p class="text-small mt-1 text-center">Export backs up all data. Import restores from JSON file.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALARM MODAL -->
+    <div class="alarm-modal" id="alarm-modal">
+        <div class="alarm-modal-content">
+            <h2>⏰ Time's Up!</h2>
+            <p>Your study session is complete.</p>
+            <button class="btn-primary" onclick="stopAlarm()">Stop Alarm</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================
+        // STATE MANAGEMENT
+        // ============================
+        const STORAGE_KEY = 'prod_hub_all_v1';
+
+        // Default state structure
+        const defaultState = {
+            settings: {
+                theme: 'dark'
+            },
+            studyLogs: {}, // {date: [{id, durationSec, ts}]}
+            habits: {}, // {weekKey: [{id, name, days: {date: true}}]}
+            sleep: {}, // {date: hours}
+            todos: [], // [{id, text, done, created}]
+            syllabus: {
+                Physics: [],
+                Chemistry: [],
+                Maths: [],
+                English: []
+            }
+        };
+
+        let state = defaultState;
+
+        // Load state from localStorage
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge with default to ensure all keys exist
+                    state = { ...defaultState, ...parsed };
+                    // Ensure nested objects exist
+                    state.settings = state.settings || {};
+                    state.studyLogs = state.studyLogs || {};
+                    state.habits = state.habits || {};
+                    state.sleep = state.sleep || {};
+                    state.todos = state.todos || [];
+                    state.syllabus = state.syllabus || defaultState.syllabus;
+                } else {
+                    // Initialize with pre-filled syllabus
+                    initializeSyllabus();
+                    saveState();
+                }
+            } catch (e) {
+                console.error('Error loading state:', e);
+                state = defaultState;
+                initializeSyllabus();
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                console.error('Error saving state:', e);
+                alert('Failed to save data. Storage might be full.');
+            }
+        }
+
+        // ============================
+        // UTILITY FUNCTIONS
+        // ============================
+
+        // Generate unique ID
+        function uid() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return ${year}-${month}-${day};
+        }
+
+        // Get Monday of the week for a given date (ISO week)
+        function weekStartISO(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+            const monday = new Date(d.setDate(diff));
+            return formatDate(monday);
+        }
+
+        // Get date N days ago
+        function getDaysAgo(n) {
+            const date = new Date();
+            date.setDate(date.getDate() - n);
+            return formatDate(date);
+        }
+
+        // Format seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')};
+        }
+
+        // ============================
+        // THEME MANAGEMENT
+        // ============================
+        function toggleTheme() {
+            const body = document.body;
+            const isLight = body.classList.contains('light-mode');
+            if (isLight) {
+                body.classList.remove('light-mode');
+                state.settings.theme = 'dark';
+            } else {
+                body.classList.add('light-mode');
+                state.settings.theme = 'light';
+            }
+            saveState();
+        }
+
+        function applyTheme() {
+            if (state.settings.theme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+        }
+
+        // ============================
+        // TIMER
+        // ============================
+        let timerInterval = null;
+        let timerRemaining = 0;
+        let timerTotal = 0;
+        let timerStartTime = 0;
+        let audioContext = null;
+        let alarmOscillator = null;
+
+        function updateTimerDisplay() {
+            document.getElementById('timer-display').textContent = formatTime(timerRemaining);
+            const progress = timerTotal > 0 ? ((timerTotal - timerRemaining) / timerTotal) * 100 : 0;
+            document.getElementById('timer-progress').style.width = progress + '%';
+        }
+
+        function startTimer() {
+            if (timerInterval) return; // Already running
+
+            const mins = parseInt(document.getElementById('timer-minutes').value) || 0;
+            const secs = parseInt(document.getElementById('timer-seconds').value) || 0;
+
+            if (timerRemaining === 0) {
+                // New timer
+                timerTotal = mins * 60 + secs;
+                timerRemaining = timerTotal;
+            }
+
+            if (timerRemaining <= 0) {
+                alert('Please set a valid time.');
+                return;
+            }
+
+            timerStartTime = Date.now();
+
+            timerInterval = setInterval(() => {
+                timerRemaining--;
+                updateTimerDisplay();
+
+                if (timerRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    // Log full session
+                    logStudySession(timerTotal);
+                    playAlarm();
+                    updateSessionsToday();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            // Log elapsed time if any
+            const elapsed = timerTotal - timerRemaining;
+            if (elapsed > 0) {
+                logStudySession(elapsed);
+                updateSessionsToday();
+            }
+
+            // Reset timer
+            timerRemaining = 0;
+            timerTotal = 0;
+            updateTimerDisplay();
+        }
+
+        function logStudySession(durationSec) {
+            const today = formatDate(new Date());
+            if (!state.studyLogs[today]) {
+                state.studyLogs[today] = [];
+            }
+            state.studyLogs[today].push({
+                id: uid(),
+                durationSec: durationSec,
+                ts: Date.now()
+            });
+            saveState();
+            renderAnalytics();
+        }
+
+        function updateSessionsToday() {
+            const today = formatDate(new Date());
+            const count = state.studyLogs[today] ? state.studyLogs[today].length : 0;
+            document.getElementById('sessions-count').textContent = count;
+        }
+
+        // ============================
+        // ALARM (WebAudio)
+        // ============================
+        function playAlarm() {
+            const alarmType = document.querySelector('input[name="alarm"]:checked').value;
+
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (alarmType === 'beep') {
+                // Short 1-second beep
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 1);
+            } else if (alarmType === 'tone') {
+                // Continuous tone until stopped
+                alarmOscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                alarmOscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                alarmOscillator.frequency.value = 800;
+                alarmOscillator.type = 'square';
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                alarmOscillator.start();
+                
+                // Show modal
+                document.getElementById('alarm-modal').classList.add('active');
+            }
+        }
+
+        function stopAlarm() {
+            if (alarmOscillator) {
+                alarmOscillator.stop();
+                alarmOscillator = null;
+            }
+            document.getElementById('alarm-modal').classList.remove('active');
+        }
+
+        // ============================
+        // HABITS
+        // ============================
+        function addHabit() {
+            const input = document.getElementById('habit-input');
+            const name = input.value.trim();
+            if (!name) return;
+
+            const weekKey = weekStartISO(new Date());
+            if (!state.habits[weekKey]) {
+                state.habits[weekKey] = [];
+            }
+
+            state.habits[weekKey].push({
+                id: uid(),
+                name: name,
+                days: {}
+            });
+
+            input.value = '';
+            saveState();
+            renderHabits();
+        }
+
+        function toggleHabit(weekKey, habitId, date) {
+            const week = state.habits[weekKey];
+            if (!week) return;
+
+            const habit = week.find(h => h.id === habitId);
+            if (!habit) return;
+
+            habit.days[date] = !habit.days[date];
+            saveState();
+            renderHabits();
+            renderAnalytics();
+        }
+
+        function deleteHabit(weekKey, habitId) {
+            if (!confirm('Delete this habit?')) return;
+            state.habits[weekKey] = state.habits[weekKey].filter(h => h.id !== habitId);
+            if (state.habits[weekKey].length === 0) {
+                delete state.habits[weekKey];
+            }
+            saveState();
+            renderHabits();
+        }
+
+        function markAllToday() {
+            const today = formatDate(new Date());
+            const weekKey = weekStartISO(new Date());
+            if (!state.habits[weekKey]) return;
+
+            state.habits[weekKey].forEach(habit => {
+                habit.days[today] = true;
+            });
+
+            saveState();
+            renderHabits();
+            renderAnalytics();
+        }
+
+        function exportHabits() {
+            const weekKey = weekStartISO(new Date());
+            const data = state.habits[weekKey] || [];
+            const json = JSON.stringify(data, null, 2);
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(json).then(() => {
+                    alert('Habits data copied to clipboard!');
+                });
+            } else {
+                // Fallback: download as file
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = habits_${weekKey}.json;
+                a.click();
+            }
+        }
+
+        function renderHabits() {
+            const weekKey = weekStartISO(new Date());
+            const habits = state.habits[weekKey] || [];
+
+            // Generate week dates (Mon-Sun)
+            const weekStart = new Date(weekKey);
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(weekStart);
+                d.setDate(weekStart.getDate() + i);
+                dates.push(formatDate(d));
+            }
+
+            // Header
+            const header = document.getElementById('habit-header');
+            header.innerHTML = `
+                <tr>
+                    <th>Habit</th>
+                    ${dates.map(d => {
+                        const dt = new Date(d);
+                        const label = ${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')};
+                        return <th>${label}</th>;
+                    }).join('')}
+                    <th>Actions</th>
+                </tr>
+            `;
+
+            // Body
+            const body = document.getElementById('habit-body');
+            if (habits.length === 0) {
+                body.innerHTML = '<tr><td colspan="9" class="text-center">No habits yet. Add one above!</td></tr>';
+                return;
+            }
+
+            body.innerHTML = habits.map(habit => `
+                <tr>
+                    <td>${habit.name}</td>
+                    ${dates.map(date => {
+                        const checked = habit.days[date];
+                        return <td><button class="habit-check-btn" onclick="toggleHabit('${weekKey}', '${habit.id}', '${date}')">${checked ? '●' : '○'}</button></td>;
+                    }).join('')}
+                    <td><button class="btn-danger todo-delete" onclick="deleteHabit('${weekKey}', '${habit.id}')">Del</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // ============================
+        // SLEEP
+        // ============================
+        function logSleepToday() {
+            const hours = parseInt(document.getElementById('sleep-hours').value);
+            const today = formatDate(new Date());
+            state.sleep[today] = hours;
+            saveState();
+            renderSleep();
+            renderAnalytics();
+        }
+
+        function deleteSleep(date) {
+            if (!confirm(Delete sleep log for ${date}?)) return;
+            delete state.sleep[date];
+            saveState();
+            renderSleep();
+            renderAnalytics();
+        }
+
+        function renderSleep() {
+            const list = document.getElementById('sleep-list');
+            const dates = [];
+            for (let i = 0; i < 14; i++) {
+                dates.push(getDaysAgo(i));
+            }
+
+            list.innerHTML = dates.map(date => {
+                const hours = state.sleep[date];
+                return `
+                    <div class="sleep-item">
+                        <div class="sleep-date">${date}</div>
+                        <div class="sleep-hours">${hours !== undefined ? hours + ' hrs' : '-'}</div>
+                        ${hours !== undefined ? <button class="btn-danger todo-delete" onclick="deleteSleep('${date}')">Del</button> : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================
+        // TODO
+        // ============================
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            state.todos.push({
+                id: uid(),
+                text: text,
+                done: false,
+                created: Date.now()
+            });
+
+            input.value = '';
+            saveState();
+            renderTodos();
+        }
+
+        function toggleTodo(id) {
+            const todo = state.todos.find(t => t.id === id);
+            if (todo) {
+                todo.done = !todo.done;
+                saveState();
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(id) {
+            state.todos = state.todos.filter(t => t.id !== id);
+            saveState();
+            renderTodos();
+        }
+
+        function clearCompletedTodos() {
+            const completed = state.todos.filter(t => t.done).length;
+            if (completed === 0) {
+                alert('No completed tasks to clear.');
+                return;
+            }
+            if (!confirm(Clear ${completed} completed task(s)?)) return;
+            state.todos = state.todos.filter(t => !t.done);
+            saveState();
+            renderTodos();
+        }
+
+        function renderTodos() {
+            const list = document.getElementById('todo-list');
+            if (state.todos.length === 0) {
+                list.innerHTML = '<div class="text-center text-small" style="padding: 2rem;">No tasks yet. Add one above!</div>';
+                return;
+            }
+
+            // Sort: incomplete first, then by created desc
+            const sorted = [...state.todos].sort((a, b) => {
+                if (a.done !== b.done) return a.done ? 1 : -1;
+                return b.created - a.created;
+            });
+
+            list.innerHTML = sorted.map(todo => `
+                <div class="todo-item ${todo.done ? 'done' : ''}">
+                    <input type="checkbox" class="todo-checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo('${todo.id}')">
+                    <div class="todo-text">${todo.text}</div>
+                    <button class="btn-danger todo-delete" onclick="deleteTodo('${todo.id}')">Del</button>
+                </div>
+            `).join('');
+        }
+
+        // ============================
+        // SYLLABUS
+        // ============================
+        function initializeSyllabus() {
+            const syllabusData = {
+                Physics: [
+                    'Electric charges and fields', 'Electrostatic potential & capacitance', 'Current electricity',
+                    'Moving charges & magnetism', 'Magnetism and matter', 'EMI', 'AC', 'EM waves',
+                    'Ray optics', 'Wave optics', 'Dual nature', 'Atoms', 'Nuclei', 'Semiconductor'
+                ],
+                Chemistry: [
+                    'Solid state', 'Solutions', 'Electrochemistry', 'Chemical kinetics', 'Surface chemistry',
+                    'Isolation of elements', 'p-block', 'd- and f-block', 'Coordination compounds',
+                    'Haloalkanes', 'Alcohols, phenols', 'Aldehyde, ketone', 'Amines', 'Biomolecules',
+                    'Polymers', 'Chemistry in everyday life'
+                ],
+                Maths: [
+                    'Relations & functions', 'Inverse trigonometry', 'Matrices', 'Determinants',
+                    'Continuity & differentiability', 'Application of derivatives', 'Integration',
+                    'Differential equations', 'Vectors', '3D', 'Linear programming', 'Probability'
+                ],
+                English: ['Reading', 'Writing', 'Grammar', 'Literature']
+            };
+
+            for (const [subject, chapters] of Object.entries(syllabusData)) {
+                state.syllabus[subject] = chapters.map(name => ({
+                    id: uid(),
+                    name: name,
+                    status: 0 // 0=Not started, 1=In progress, 2=Completed
+                }));
+            }
+        }
+
+        function addChapter() {
+            const input = document.getElementById('syllabus-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Parse "Subject | Chapter Name"
+            const parts = text.split('|').map(s => s.trim());
+            if (parts.length !== 2) {
+                alert('Format: Subject | Chapter Name');
+                return;
+            }
+
+            const [subject, chapterName] = parts;
+
+            if (!state.syllabus[subject]) {
+                state.syllabus[subject] = [];
+            }
+
+            state.syllabus[subject].push({
+                id: uid(),
+                name: chapterName,
+                status: 0
+            });
+
+            input.value = '';
+            saveState();
+            renderSyllabus();
+        }
+
+        function updateChapterStatus(subject, chapterId, newStatus) {
+            const chapter = state.syllabus[subject].find(c => c.id === chapterId);
+            if (chapter) {
+                chapter.status = parseInt(newStatus);
+                saveState();
+                renderSyllabus();
+            }
+        }
+
+        function deleteChapter(subject, chapterId) {
+            if (!confirm('Delete this chapter?')) return;
+            state.syllabus[subject] = state.syllabus[subject].filter(c => c.id !== chapterId);
+            saveState();
+            renderSyllabus();
+        }
+
+        function calculateProgress() {
+            const progress = {};
+            let totalChapters = 0;
+            let completedTotal = 0;
+
+            for (const [subject, chapters] of Object.entries(state.syllabus)) {
+                const total = chapters.length;
+                const completed = chapters.filter(c => c.status === 2).length;
+                progress[subject] = total > 0 ? Math.round((completed / total) * 100) : 0;
+                totalChapters += total;
+                completedTotal += completed;
+            }
+
+            progress.overall = totalChapters > 0 ? Math.round((completedTotal / totalChapters) * 100) : 0;
+            return progress;
+        }
+
+        function renderSyllabus() {
+            const progress = calculateProgress();
+
+            // Progress section
+            const progressDiv = document.getElementById('syllabus-progress');
+            progressDiv.innerHTML = `
+                <div class="progress-item">
+                    <span>Overall Progress</span>
+                    <span class="progress-percent">${progress.overall}%</span>
+                </div>
+                ${Object.keys(state.syllabus).map(subject => `
+                    <div class="progress-item">
+                        <span>${subject}</span>
+                        <span class="progress-percent">${progress[subject]}%</span>
+                    </div>
+                `).join('')}
+            `;
+
+            // Subjects section
+            const subjectsDiv = document.getElementById('syllabus-subjects');
+            subjectsDiv.innerHTML = Object.entries(state.syllabus).map(([subject, chapters]) => `
+                <div class="subject-section">
+                    <div class="subject-title">${subject}</div>
+                    ${chapters.length === 0 ? '<div class="text-small">No chapters yet.</div>' : ''}
+                    ${chapters.map(chapter => `
+                        <div class="chapter-item">
+                            <div class="chapter-name">${chapter.name}</div>
+                            <select class="chapter-status" onchange="updateChapterStatus('${subject}', '${chapter.id}', this.value)">
+                                <option value="0" ${chapter.status === 0 ? 'selected' : ''}>Not started</option>
+                                <option value="1" ${chapter.status === 1 ? 'selected' : ''}>In progress</option>
+                                <option value="2" ${chapter.status === 2 ? 'selected' : ''}>Completed</option>
+                            </select>
+                            <button class="btn-danger chapter-delete" onclick="deleteChapter('${subject}', '${chapter.id}')">Del</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        // ============================
+        // ANALYTICS (Canvas Charts)
+        // ============================
+        function drawBarChart(canvasId, data, label) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Set actual size in memory (scaled to account for retina displays)
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            
+            // Scale all drawing operations
+            ctx.scale(dpr, dpr);
+            
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Styling
+            const barColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+
+            // Find max value
+            const maxValue = Math.max(...data.map(d => d.value), 1);
+
+            // Draw bars
+            const barWidth = chartWidth / data.length - 10;
+            data.forEach((item, i) => {
+                const barHeight = (item.value / maxValue) * chartHeight;
+                const x = padding + i * (chartWidth / data.length) + 5;
+                const y = height - padding - barHeight;
+
+                ctx.fillStyle = barColor;
+                ctx.fillRect(x, y, barWidth, barHeight);
+
+                // Label (date)
+                ctx.fillStyle = textColor;
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.label, x + barWidth / 2, height - padding + 15);
+
+                // Value on top of bar
+                if (item.value > 0) {
+                    ctx.fillText(item.value.toFixed(0), x + barWidth / 2, y - 5);
+                }
+            });
+
+            // Draw grid line at max
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(width - padding, padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function renderAnalytics() {
+            // Last 7 days
+            const dates = [];
+            for (let i = 6; i >= 0; i--) {
+                dates.push(getDaysAgo(i));
+            }
+
+            // Study chart
+            const studyData = dates.map(date => {
+                const logs = state.studyLogs[date] || [];
+                const totalSec = logs.reduce((sum, log) => sum + log.durationSec, 0);
+                const mins = Math.round(totalSec / 60);
+                const label = date.slice(5); // MM-DD
+                return { label, value: mins };
+            });
+            drawBarChart('chart-study', studyData, 'Study (min)');
+
+            // Habits chart
+            const habitsData = dates.map(date => {
+                const weekKey = weekStartISO(new Date(date));
+                const habits = state.habits[weekKey] || [];
+                if (habits.length === 0) return { label: date.slice(5), value: 0 };
+                const completed = habits.filter(h => h.days[date]).length;
+                const percent = Math.round((completed / habits.length) * 100);
+                return { label: date.slice(5), value: percent };
+            });
+            drawBarChart('chart-habits', habitsData, 'Habits (%)');
+
+            // Sleep chart
+            const sleepData = dates.map(date => {
+                const hours = state.sleep[date] || 0;
+                return { label: date.slice(5), value: hours };
+            });
+            drawBarChart('chart-sleep', sleepData, 'Sleep (hrs)');
+        }
+
+        // ============================
+        // DAILY REPORT
+        // ============================
+        function generateDailyReport() {
+            const today = formatDate(new Date());
+            
+            // Study time
+            const logs = state.studyLogs[today] || [];
+            const totalMin = Math.round(logs.reduce((sum, log) => sum + log.durationSec, 0) / 60);
+            
+            // Tasks
+            const totalTasks = state.todos.length;
+            const completedTasks = state.todos.filter(t => t.done).length;
+            
+            // Habits
+            const weekKey = weekStartISO(new Date());
+            const habits = state.habits[weekKey] || [];
+            const completedHabits = habits.filter(h => h.days[today]).length;
+            
+            // Sleep
+            const sleepHours = state.sleep[today] || 0;
+
+            const report = `Study Summary — ${today}
+• Timer: ${totalMin} min
+• Tasks completed: ${completedTasks}/${totalTasks}
+• Habits completed today: ${completedHabits}/${habits.length}
+• Sleep: ${sleepHours} hrs`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(report).then(() => {
+                    alert('Daily report copied to clipboard!');
+                });
+            } else {
+                alert(report);
+            }
+        }
+
+        // ============================
+        // BACKUP & RESTORE
+        // ============================
+        function exportData() {
+            const json = JSON.stringify(state, null, 2);
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(json).then(() => {
+                    alert('Data exported to clipboard!');
+                }).catch(() => {
+                    // Fallback to download
+                    downloadJSON(json);
+                });
+            } else {
+                downloadJSON(json);
+            }
+        }
+
+        function downloadJSON(json) {
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'prod_backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('Data exported as file!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('This will replace all current data. Continue?')) {
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    state = imported;
+                    saveState();
+                    location.reload();
+                } catch (err) {
+                    alert('Invalid JSON file.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetAllData() {
+            if (!confirm('This will delete ALL data permanently. Are you sure?')) return;
+            if (!confirm('Really delete everything? This cannot be undone!')) return;
+
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        // ============================
+        // INITIALIZATION
+        // ============================
+        function init() {
+            loadState();
+            applyTheme();
+            updateTimerDisplay();
+            updateSessionsToday();
+            renderHabits();
+            renderSleep();
+            renderTodos();
+            renderSyllabus();
+            renderAnalytics();
+
+            // Re-render charts on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(renderAnalytics, 200);
+            });
+        }
+
+        // Run on load
+        window.addEventListener('DOMContentLoaded', init);
+
+        /*
+        ============================
+        TESTING CHECKLIST
+        ============================
+        
+        ✅ TIMER:
+        - Set minutes and seconds, click Start
+        - Timer counts down second-by-second
+        - Click Pause to pause, Start to resume
+        - Click Stop before finish - should log elapsed time
+        - Let timer reach 00:00 - should log full session and play alarm
+        - Check "Sessions Today" counter increments
+        - Test both alarm modes (beep vs continuous tone)
+        - For continuous tone, verify Stop Alarm button works
+
+        ✅ HABITS:
+        - Add a new habit
+        - Click cells to toggle checked/unchecked (● / ○)
+        - Click "Mark All Today" to check all habits for today
+        - Click "Export Month" to copy/download current week data
+        - Delete a habit
+
+        ✅ SLEEP:
+        - Select hours from dropdown and click "Log for Today"
+        - Verify today's entry appears in the list
+        - Click Delete on any entry to remove it
+        - Check that last 14 days are shown
+
+        ✅ TODO:
+        - Add a task
+        - Click checkbox to mark as done (text strikes through)
+        - Click Delete to remove a task
+        - Add multiple tasks, complete some, click "Clear Completed"
+
+        ✅ SYLLABUS:
+        - Verify pre-filled chapters for Physics, Chemistry, Maths, English
+        - Change status dropdown (Not started / In progress / Completed)
+        - Check that progress percentages update
+        - Add new chapter using "Subject | Chapter Name" format
+        - Add chapter to new subject (creates subject automatically)
+        - Delete a chapter
+
+        ✅ ANALYTICS:
+        - Check that three charts render
+        - Study chart shows minutes per day (last 7 days)
+        - Habits chart shows completion % per day
+        - Sleep chart shows hours per day
+        - Charts update when you log data
+        - Resize window - charts should re-render
+
+        ✅ DAILY REPORT:
+        - Click "Generate Daily Report"
+        - Verify report is copied to clipboard (or shown in alert)
+        - Check report shows: timer minutes, tasks completion, habits completion, sleep hours
+
+        ✅ BACKUP:
+        - Click Export - data copied/downloaded as JSON
+        - Click Import - choose exported JSON file
+        - Confirm import replaces data (reload happens)
+        - Click Reset All Data - confirm everything clears
+
+        ✅ THEME:
+        - Click Toggle Theme button
+        - Verify colors switch between dark and light
+        - Reload page - theme should persist
+
+        ✅ PERSISTENCE:
+        - Add data across all sections
+        - Refresh page - all data should remain
+        - Close and reopen browser - data should persist
+
+        ✅ RESPONSIVE:
+        - Test on desktop (wide screen) - two columns
+        - Test on mobile/narrow screen - single column stack
+        - Verify all buttons and inputs are touch-friendly
+        - Check horizontal scroll on habits table if needed
+
+        */
+    </script>
+</body>
+</html>
